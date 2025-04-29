@@ -1,8 +1,11 @@
 package com.playdata.userservice.common.auth;
 
 import com.playdata.userservice.user.entity.Role;
+import lombok.*;
 
-@Setter @Getter @ToString
+@Setter
+@Getter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
