@@ -22,11 +22,28 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/gateway-service" />
+        <option name="gradleJvm" value="23" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/gateway-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/second-service" />
         <option name="gradleJvm" value="23" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/second-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/user-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/user-service" />
           </set>
         </option>
       </GradleProjectSettings>
