@@ -42,9 +42,9 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory {
             boolean isAllowed
                     = allowUrl.stream()
                     .anyMatch(url -> antPathMatcher.match(url, path));
-            log.info("isAllowed: {}", isAllowed);
+            log.info("isAllowed:{}", isAllowed);
 
-            if (!isAllowed) {
+            if (isAllowed) {
                 // 허용 url이 맞다면 그냥 통과~
                 return chain.filter(exchange);
             }
@@ -114,5 +114,6 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory {
             log.error("JWT validation failed: {}", e.getMessage());
             return null;
         }
+
     }
 }

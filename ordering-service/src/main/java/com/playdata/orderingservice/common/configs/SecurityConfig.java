@@ -43,15 +43,13 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> {
             auth
 //                    .requestMatchers("/user/list").hasRole("ROLE_ADMIN")
-                    .requestMatchers("/user/create", "/user/doLogin", "/product/list", "/user/refresh").permitAll()
+                    .requestMatchers("/user/create",
+                                    "/user/doLogin",
+                                    "/user/refresh",
+                                     "/user/findByEmail").permitAll()
                     .anyRequest().authenticated();
         });
-        // "/user/create", "/user/doLogin"은 인증 검사가 필요 없다고 설정했고,
-        // 나머지 요청들은 권한 검사가 필요하다고 세팅 했습니다.
-        // 권한 검사가 필요한 요청들을 어떤 필터로 검사할지를 추가해 주면 됩니다.
 
-        // 스프링 시큐리티가 기본으로 세팅하는 여러가지 필터가 있는데요.
-        // 내가 직접 만든 커스텀 필터가 해당 필터를 대체할 것이지 때문에, 그 필터 앞에 세워놓는 겁니다.
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 인증 과정에서 예외가 발생할 경우 그 예외를 핸들링 할 객체를 등록

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/product")
@@ -76,5 +77,32 @@ public class ProductController {
 
         return ResponseEntity.ok().body(resDto);
     }
+
+    // 단일 상품 조회
+    @GetMapping("/{prodId}")
+    public ResponseEntity<?> getProductById(@PathVariable Long prodId) {
+        log.info("/product/{}: GET!", prodId);
+        ProductResDto dto = productService.getProductInfo(prodId);
+
+        CommonResDto resDto
+                = new CommonResDto(HttpStatus.OK, "조회 완료", dto);
+
+        return ResponseEntity.ok().body(resDto);
+    }
+
+    // 수량 업데이트
+    @PostMapping("/updateQuantity")
+    public ResponseEntity<?> updateStockQuantity(@RequestBody Map<String, String> map) {
+        Long prodId = Long.parseLong(map.get("productId"));
+        int stockQuantity = Integer.parseInt(map.get("stockQuantity"));
+
+        log.info("/product/updateQuantity: PATCH, prodId: {}, stockQuantity: {}"
+                , prodId, stockQuantity);
+        productService.updateStockQuantity(prodId, stockQuantity);
+        CommonResDto resDto
+                = new CommonResDto(HttpStatus.OK, "변경 완료", prodId);
+        return ResponseEntity.ok().body(resDto);
+    }
+
 
 }
