@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -95,4 +96,80 @@ public class OrderingService {
 
         return orderingRepository.save(ordering);
     }
+
+    public void myOrder(final TokenUserInfo userInfo) {
+        String email = userInfo.getEmail();
+        CommonResDto<UserResDto> byEmail
+                = userServiceClient.findByEmail(email);
+        UserResDto userDto = byEmail.getResult();
+
+        // 해당 사용자의 주문 내역 전부 가져오기.
+        List<Ordering> orderingList
+                = orderingRepository.findByUserId(userDto.getId());
+
+        // 주문 내역에서 모든 상품 ID를 추출한 후
+        // product-service에게 상품 정보를 요청
+        /*
+         OrderingListResDto -> OrderDetailDto(static 내부 클래스)
+         {
+            id: 주문번호,
+            userEmail: 주문한 사람 이메일,
+            orderStatus: 주문 상태
+            orderDetails: [
+                {
+                    id: 주문상세번호,
+                    productName: 상품명,
+                    count: 수량
+                },
+                {
+                    id: 주문상세번호,
+                    productName: 상품명,
+                    count: 수량
+                },
+                {
+                    id: 주문상세번호,
+                    productName: 상품명,
+                    count: 수량
+                }
+                ...
+            ]
+         }
+         */
+
+        List<Long> productIds = orderingList.stream() // 스트림 준비
+                // flatMap: 하나의 주문 내역에서 상세 주문 내역 리스트를 꺼낸 후 하나의 스트림으로 평탄화
+                /* flatMap의 동작 원리
+                [
+                    Ordering 1 -> [OrderDetail1, OrderDetail2]
+                    Ordering 2 -> [OrderDetail3]
+                    Ordering 3 -> [OrderDetai4, OrderDetail5, OrderDetail6]
+                ]
+
+                [OrderDetail1, OrderDetail2, OrderDetail3, OrderDetail4, OrderDetail5, OrderDetail6]
+                 */
+                .flatMap(ordering -> ordering.getOrderDetails().stream())
+                .map(orderDetail -> orderDetail.getProductId())
+                .distinct()
+                .collect(Collectors.toList());
+
+        // product-service에게 상품 정보를 달라고 요청해야 함.
+        CommonResDto<List<ProductResDto>> products
+                = ProductServiceClient.getProducts(productIds);
+        List<ProductResDto> dtoList = products.getResult();
+
+        // product-sevice에게 받아온 리스트를 필요로 하는 정보로만 맵으로 맵핑.
+        Map<Long, String> product = dtoList.stream()
+                .collect(Collectors.toMap(
+                        dto -> dto.getId(), // key
+                        dto -> dto.getName() // value
+                ));
+
+        // Ordering 객체를 DTO로 변환하자. 주문 상세에 대한 변환도 따로 처리.
+        orderingList.stream()
+                .map(ordering -> ordering.fromEntity(email, productIdToNameMap))
+                .collect(Collectors.toList());
+
+
+    }
+
 }

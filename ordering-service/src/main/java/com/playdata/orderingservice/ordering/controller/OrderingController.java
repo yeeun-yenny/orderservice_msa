@@ -1,8 +1,11 @@
 package com.playdata.orderingservice.ordering.controller;
 
+import com.playdata.orderingservice.client.ProductServiceClient;
 import com.playdata.orderingservice.common.auth.TokenUserInfo;
 import com.playdata.orderingservice.common.dto.CommonResDto;
+import com.playdata.orderingservice.ordering.dto.OrderingListResDto;
 import com.playdata.orderingservice.ordering.dto.OrderingSaveReqDto;
+import com.playdata.orderingservice.ordering.dto.ProductResDto;
 import com.playdata.orderingservice.ordering.entity.Ordering;
 import com.playdata.orderingservice.ordering.service.OrderingService;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -41,5 +41,15 @@ public class OrderingController {
 
         return new ResponseEntity<>(resDto, HttpStatus.CREATED);
     }
+
+    // 내 주문만 볼 수 있는 MyOrders
+    @GetMapping("/my-order")
+    public ResponseEntity<?> myOrder(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        List<OrderingListResDto> dtos = orderingService.
+    }
+
+    // 전체 회원의 주문 조회 (ADMIN 전용)
+
+
 
 }
