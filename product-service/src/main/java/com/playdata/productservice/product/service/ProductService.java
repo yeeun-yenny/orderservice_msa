@@ -4,7 +4,7 @@ import com.playdata.productservice.common.configs.AwsS3Config;
 import com.playdata.productservice.product.dto.ProductResDto;
 import com.playdata.productservice.product.dto.ProductSaveReqDto;
 import com.playdata.productservice.product.dto.ProductSearchDto;
-import com.playdata.productservice.product.emtity.Product;
+import com.playdata.productservice.product.entity.Product;
 import com.playdata.productservice.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

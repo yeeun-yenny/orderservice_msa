@@ -1,4 +1,4 @@
-package com.playdata.productservice.product.emtity;
+package com.playdata.productservice.product.entity;
 
 import com.playdata.productservice.common.entity.BaseTimeEntity;
 import com.playdata.productservice.product.dto.ProductResDto;

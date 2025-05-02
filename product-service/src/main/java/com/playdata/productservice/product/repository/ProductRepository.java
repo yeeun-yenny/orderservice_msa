@@ -1,6 +1,6 @@
 package com.playdata.productservice.product.repository;
 
-import com.playdata.productservice.product.emtity.Product;
+import com.playdata.productservice.product.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

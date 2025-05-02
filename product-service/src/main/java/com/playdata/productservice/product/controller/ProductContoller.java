@@ -4,7 +4,7 @@ import com.playdata.productservice.common.dto.CommonResDto;
 import com.playdata.productservice.product.dto.ProductResDto;
 import com.playdata.productservice.product.dto.ProductSaveReqDto;
 import com.playdata.productservice.product.dto.ProductSearchDto;
-import com.playdata.productservice.product.emtity.Product;
+import com.playdata.productservice.product.entity.Product;
 import com.playdata.productservice.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,21 +22,22 @@ import java.util.Map;
 @RequestMapping("/product")
 @RequiredArgsConstructor
 @Slf4j
-public class ProductController {
+public class ProductContoller {
 
     private final ProductService productService;
 
     // 상품 등록 요청
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
-    public ResponseEntity<?> createProduct(ProductSaveReqDto dto) throws IOException {
+    public ResponseEntity<?> createProduct(ProductSaveReqDto dto)
+            throws IOException {
         /*
         상품 등록 요청은 여러 데이터와 함께 이미지가 전달될 것입니다.
         1. JS의 formData 객체를 통해 모든 데이터를 전달 (JSON 형태가 아니라, multipart/form-data 형식)
         2. JSON 형태로 전달 (이미지를 Base64 인코딩을 통해 문자열로 변환해서 전달)
 
-         formData로 넘어오는 이미지 파일은 MultipartFile 형태로 받아주시면 됩니다.
-         MultipartFile은 이미지의 정보(크기, 원본이름...), 지정된 경로로 파일 전송 기능을 제공합니다.
+        formData로 넘어오는 이미지 파일은 MultipartFile 형태로 받아주시면 됩니다.
+        MultipartFile은 이미지의 정보(크기, 원본이름...), 지정된 경로로 파일 전송 기능을 제공합니다.
          */
         log.info("dto: {}", dto);
         Product product = productService.productCreate(dto);
@@ -49,7 +50,7 @@ public class ProductController {
 
     // 요청방식: GET, 요청 URL: /product/list
     // 따로 권한은 필요 없습니다. (누구나 요청이 가능합니다. 로그인 안해도 됩니다.)
-    // 페이징이 필요합니다. 리턴은 ProductResDto 형태로 리턴됩니다.
+    // 페이징이 필요합니다. -> 클라이언트 쪽에서 페이지 번호와 한 화면에 보여질 상품 개수, 정렬 방식이 넘어와요.
     // 리턴은 ProductResDto 형태로 리턴됩니다.
     // ProductResDto(id, name, category, price, stockQuantity, imagePath)
     @GetMapping("/list")
@@ -61,7 +62,7 @@ public class ProductController {
         List<ProductResDto> dtoList = productService.productList(dto, pageable);
 
         CommonResDto resDto
-                = new CommonResDto(HttpStatus.OK, "상품 조회 성공", dtoList);
+                = new CommonResDto(HttpStatus.OK, "상품 리스트 정상 조회", dtoList);
 
         return ResponseEntity.ok().body(resDto);
     }
@@ -91,11 +92,10 @@ public class ProductController {
     }
 
     // 수량 업데이트
-    @PostMapping("/updateQuantity")
-    public ResponseEntity<?> updateStockQuantity(@RequestBody Map<String, String> map) {
-        Long prodId = Long.parseLong(map.get("productId"));
-        int stockQuantity = Integer.parseInt(map.get("stockQuantity"));
-
+    @PutMapping("/updateQuantity")
+    public ResponseEntity<?> updateStockQuantity(@RequestBody ProductResDto dto) {
+        Long prodId = dto.getId();
+        int stockQuantity = dto.getStockQuantity();
         log.info("/product/updateQuantity: PATCH, prodId: {}, stockQuantity: {}"
                 , prodId, stockQuantity);
         productService.updateStockQuantity(prodId, stockQuantity);
@@ -103,6 +103,5 @@ public class ProductController {
                 = new CommonResDto(HttpStatus.OK, "변경 완료", prodId);
         return ResponseEntity.ok().body(resDto);
     }
-
 
 }
