@@ -41,7 +41,8 @@ public class ProductService {
         /*
         // 특정 로컬 경로에 이미지를 전송하고, 그 경로를 Entity에 세팅하자.
         File file
-                = new File("/Users/yeni/Documents/playData_8기/upload/" + uniqueFileName);
+                = new File("/Users/stephen/Desktop/playdata_8th_develop/upload/" + uniqueFileName);
+
         try {
             productImage.transferTo(file);
         } catch (IOException e) {
@@ -57,6 +58,7 @@ public class ProductService {
         product.setImagePath(imageUrl); // 파일명이 아닌 S3 오브젝트의 url이 저장될 것이다.
 
         return productRepository.save(product);
+
     }
 
     public List<ProductResDto> productList(ProductSearchDto dto, Pageable pageable) {
@@ -78,7 +80,7 @@ public class ProductService {
 
     public void productDelete(Long id) throws Exception {
         Product product = productRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Product with id " + id + " not found")
+                () -> new EntityNotFoundException("Product with id: " + id + " not found")
         );
 
         String imageUrl = product.getImagePath();
@@ -89,7 +91,7 @@ public class ProductService {
 
     public ProductResDto getProductInfo(Long prodId) {
         Product product = productRepository.findById(prodId).orElseThrow(
-                () -> new EntityNotFoundException("Product with id " + prodId + " not found")
+                () -> new EntityNotFoundException("Product with id: " + prodId + " not found")
         );
 
         return product.fromEntity();
@@ -97,9 +99,17 @@ public class ProductService {
 
     public void updateStockQuantity(Long prodId, int stockQuantity) {
         Product foundProduct = productRepository.findById(prodId).orElseThrow(
-                () -> new EntityNotFoundException("Product with id " + prodId + " not found")
+                () -> new EntityNotFoundException("Product with id: " + prodId + " not found")
         );
         foundProduct.setStockQuantity(stockQuantity);
         productRepository.save(foundProduct);
+    }
+
+    public List<ProductResDto> getProductsName(List<Long> productIds) {
+        List<Product> products = productRepository.findByIdIn(productIds);
+
+        return products.stream()
+                .map(Product::fromEntity)
+                .collect(Collectors.toList());
     }
 }

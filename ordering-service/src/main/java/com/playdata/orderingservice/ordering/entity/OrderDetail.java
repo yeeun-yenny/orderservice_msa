@@ -29,9 +29,10 @@ public class OrderDetail {
     @JoinColumn(name = "ordering_id")
     private Ordering ordering;
 
-    // 엔티티를 dto로 변환하는 메서드
+    // 엔터티를 dto로 변환하는 메서드
     // 내부 클래스이기 때문에 OrderingListResDto 이름으로 참조하는 모습
     public OrderingListResDto.OrderDetailDto fromEntity(Map<Long, String> map) {
+
         return OrderingListResDto.OrderDetailDto.builder()
                 .id(id)
                 .productName(map.get(productId))

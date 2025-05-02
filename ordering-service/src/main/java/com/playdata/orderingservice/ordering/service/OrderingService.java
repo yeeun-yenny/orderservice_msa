@@ -4,6 +4,7 @@ import com.playdata.orderingservice.client.ProductServiceClient;
 import com.playdata.orderingservice.client.UserServiceClient;
 import com.playdata.orderingservice.common.auth.TokenUserInfo;
 import com.playdata.orderingservice.common.dto.CommonResDto;
+import com.playdata.orderingservice.ordering.dto.OrderingListResDto;
 import com.playdata.orderingservice.ordering.dto.OrderingSaveReqDto;
 import com.playdata.orderingservice.ordering.dto.ProductResDto;
 import com.playdata.orderingservice.ordering.dto.UserResDto;
@@ -12,17 +13,11 @@ import com.playdata.orderingservice.ordering.entity.Ordering;
 import com.playdata.orderingservice.ordering.repository.OrderingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -97,8 +92,10 @@ public class OrderingService {
         return orderingRepository.save(ordering);
     }
 
-    public void myOrder(final TokenUserInfo userInfo) {
+    public List<OrderingListResDto> myOrder(final TokenUserInfo userInfo) {
         String email = userInfo.getEmail();
+
+        // 이메일로는 주문 회원 정보를 알 수가 없음. (id로 되어 있으니까)
         CommonResDto<UserResDto> byEmail
                 = userServiceClient.findByEmail(email);
         UserResDto userDto = byEmail.getResult();
@@ -107,8 +104,10 @@ public class OrderingService {
         List<Ordering> orderingList
                 = orderingRepository.findByUserId(userDto.getId());
 
+        List<Long> productIdList = new ArrayList<>();
         // 주문 내역에서 모든 상품 ID를 추출한 후
-        // product-service에게 상품 정보를 요청
+        // product-service에게 상품 정보를 요청.
+
         /*
          OrderingListResDto -> OrderDetailDto(static 내부 클래스)
          {
@@ -136,6 +135,16 @@ public class OrderingService {
          }
          */
 
+//        for (Ordering ordering : orderingList) {
+//            List<OrderDetail> orderDetailList = ordering.getOrderDetails();
+//            for (OrderDetail orderDetail : orderDetailList) {
+//                Long productId = orderDetail.getProductId();
+//                if (!productIdList.contains(productId)) {
+//                    productIdList.add(productId);
+//                }
+//            }
+//        }
+
         List<Long> productIds = orderingList.stream() // 스트림 준비
                 // flatMap: 하나의 주문 내역에서 상세 주문 내역 리스트를 꺼낸 후 하나의 스트림으로 평탄화
                 /* flatMap의 동작 원리
@@ -147,6 +156,7 @@ public class OrderingService {
 
                 [OrderDetail1, OrderDetail2, OrderDetail3, OrderDetail4, OrderDetail5, OrderDetail6]
                  */
+
                 .flatMap(ordering -> ordering.getOrderDetails().stream())
                 .map(orderDetail -> orderDetail.getProductId())
                 .distinct()
@@ -154,22 +164,19 @@ public class OrderingService {
 
         // product-service에게 상품 정보를 달라고 요청해야 함.
         CommonResDto<List<ProductResDto>> products
-                = ProductServiceClient.getProducts(productIds);
+                = productServiceClient.getProducts(productIds);
         List<ProductResDto> dtoList = products.getResult();
 
-        // product-sevice에게 받아온 리스트를 필요로 하는 정보로만 맵으로 맵핑.
-        Map<Long, String> product = dtoList.stream()
+        // product-service에게 받아온 리스트를 필요로 하는 정보로만 맵으로 맵핑.
+        Map<Long, String> productIdToNameMap = dtoList.stream()
                 .collect(Collectors.toMap(
                         dto -> dto.getId(), // key
                         dto -> dto.getName() // value
                 ));
 
         // Ordering 객체를 DTO로 변환하자. 주문 상세에 대한 변환도 따로 처리.
-        orderingList.stream()
+        return orderingList.stream()
                 .map(ordering -> ordering.fromEntity(email, productIdToNameMap))
                 .collect(Collectors.toList());
-
-
     }
-
 }

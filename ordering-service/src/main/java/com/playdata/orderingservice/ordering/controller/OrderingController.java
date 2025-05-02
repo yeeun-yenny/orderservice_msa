@@ -1,11 +1,9 @@
 package com.playdata.orderingservice.ordering.controller;
 
-import com.playdata.orderingservice.client.ProductServiceClient;
 import com.playdata.orderingservice.common.auth.TokenUserInfo;
 import com.playdata.orderingservice.common.dto.CommonResDto;
 import com.playdata.orderingservice.ordering.dto.OrderingListResDto;
 import com.playdata.orderingservice.ordering.dto.OrderingSaveReqDto;
-import com.playdata.orderingservice.ordering.dto.ProductResDto;
 import com.playdata.orderingservice.ordering.entity.Ordering;
 import com.playdata.orderingservice.ordering.service.OrderingService;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +24,14 @@ public class OrderingController {
     private final OrderingService orderingService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createOrder(
+    public ResponseEntity<?>  createOrder(
             // 전역 인증 정보를 담아놓는 ContextHolder에서 메서드 호출시에
             // 사용자 인증 정보를 전달해 주는 아노테이션
             @AuthenticationPrincipal TokenUserInfo userInfo,
-            @RequestBody List<OrderingSaveReqDto> dtoList) {
-        log.info("/order/create: POST, userInfo = {}", userInfo);
-        log.info("dtoList = {}", dtoList);
+            @RequestBody List<OrderingSaveReqDto> dtoList
+    ) {
+        log.info("/order/create: POST, userInfo: {}", userInfo);
+        log.info("dtoList: {}", dtoList);
 
         Ordering ordering = orderingService.createOrder(dtoList, userInfo);
 
@@ -44,12 +43,14 @@ public class OrderingController {
 
     // 내 주문만 볼 수 있는 MyOrders
     @GetMapping("/my-order")
-    public ResponseEntity<?> myOrder(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        List<OrderingListResDto> dtos = orderingService.
+    public ResponseEntity<?> myOrder(
+            @AuthenticationPrincipal TokenUserInfo userInfo) {
+        List<OrderingListResDto> dtos = orderingService.myOrder(userInfo);
+        CommonResDto<List<OrderingListResDto>> resDto
+                = new CommonResDto<>(HttpStatus.OK, "정상 조회 완료", dtos);
+        return ResponseEntity.ok().body(resDto);
     }
 
     // 전체 회원의 주문 조회 (ADMIN 전용)
-
-
 
 }

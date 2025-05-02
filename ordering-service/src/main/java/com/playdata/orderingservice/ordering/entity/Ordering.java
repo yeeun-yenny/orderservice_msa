@@ -27,9 +27,9 @@ public class Ordering {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-     */
+    */
 
-    // 프로젝트가 나눠지면서 Ordering 쪽에서는 User 엔티티에 대한 정보를 확인할 수 없다.
+    // 프로젝트가 나눠지면서 Ordering 쪽에서는 User 엔터티에 대한 정보를 확인할 수 없다.
     // 클라이언트 단에서 넘어오는 정보만 저장할 수 있다.
     @JoinColumn
     private Long userId;
@@ -40,17 +40,20 @@ public class Ordering {
     private List<OrderDetail> orderDetails;
 
     // dto 변환 메서드
-    public OrderingListResDto fromEntity(String email, Map<Long, String> productIdToNameMap) {
+    public OrderingListResDto fromEntity(
+            String email, Map<Long, String> productIdToNameMap
+    ) {
         List<OrderDetail> orderDetailList = this.getOrderDetails();
         List<OrderingListResDto.OrderDetailDto> orderDetailDtos
                 = new ArrayList<>();
 
-        // OrderDetail 엔티티를 orderDetailDtos로 변환해야 합니다.
+        // OrderDetail 엔터티를 OrderDetailDto로 변환해야 합니다.
         for (OrderDetail orderDetail : orderDetailList) {
             OrderingListResDto.OrderDetailDto orderDetailDto
                     = orderDetail.fromEntity(productIdToNameMap);
             orderDetailDtos.add(orderDetailDto);
         }
+
 
         return OrderingListResDto.builder()
                 .id(id)
