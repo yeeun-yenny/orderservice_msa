@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // 필터 등록을 위해서 객체가 필요 -> 빈 등록돈 객체를 자동 주입.
+    // 필터 등록을 위해서 객체가 필요 -> 빈 등록된 객체를 자동 주입.
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
@@ -43,13 +43,18 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> {
             auth
 //                    .requestMatchers("/user/list").hasRole("ROLE_ADMIN")
-                    .requestMatchers("/actuator/**").permitAll()
+                    .requestMatchers("/actuator/**", "/demo/**").permitAll()
                     .anyRequest().authenticated();
         });
+        // "/user/create", "/user/doLogin"은 인증 검사가 필요 없다고 설정했고,
+        // 나머지 요청들은 권한 검사가 필요하다고 세팅 했습니다.
+        // 권한 검사가 필요한 요청들을 어떤 필터로 검사할지를 추가해 주면 됩니다.
 
+        // 스프링 시큐리티가 기본으로 세팅하는 여러가지 필터가 있는데요,
+        // 내가 직접 만든 커스텀 필터가 해당 필터를 대체할 것이기 때문에, 그 필터 앞에 세워놓는 겁니다.
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 인증 과정에서 예외가 발생할 경우 그 예외를 핸들링 할 객체를 등록
+        //  인증 과정에서 예외가 발생할 경우 그 예외를 핸들링 할 객체를 등록
         http.exceptionHandling(exception -> {
             exception.authenticationEntryPoint(customAuthenticationEntryPoint);
         });

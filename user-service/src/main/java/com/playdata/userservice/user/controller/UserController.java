@@ -31,17 +31,17 @@ import java.util.concurrent.TimeUnit;
 public class UserController {
 
     // 컨트롤러는 서비스에 의존하고 있다. (요청과 함께 전달받은 데이터를 서비스에게 넘겨야 함!)
-    // 빈 등록된 서비스 객체를 자동으로 주입 받자
+    // 빈 등록된 서비스 객체를 자동으로 주입 받자!
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // 기존에는 yml 값 가지고 올때 @Value를 사용해서 끌고 옴
-    // Environment
+    // Environment 객체를 통해 yml에 있는 프로퍼티에 직접 접근이 가능합니다.
     private final Environment env;
 
     /*
-     프론트 단에서 회원 가입 요청 보낼때 함께 보내는 데이터 (JSON)
+     프론트 단에서 회원 가입 요청 보낼때 함께 보내는 데이터 (JSON) -> dto로 받자.
      {
         name: String,
         email: String,
@@ -58,8 +58,9 @@ public class UserController {
         // 화면단에서 전달된 데이터를 DB에 넣자.
         // 혹시 이메일이 중복되었는가? -> 이미 이전에 회원가입을 한 회원이라면 거절.
         // dto를 DB에 바로 때려? -> dto를 entity로 바꾸는 로직 추가.
-        User saved = userService.userCreate(dto);
 
+
+        User saved = userService.userCreate(dto);
         // ResponseEntity는 응답을 줄 때 다양한 정보를 한번에 포장해서 넘길 수 있습니다.
         // 요청에 따른 응답 상태 코드, 응답 헤더에 정보를 추가, 일관된 응답 처리를 제공합니다.
 
@@ -83,11 +84,10 @@ public class UserController {
                 = jwtTokenProvider.createToken(user.getEmail(), user.getRole().toString());
 
         // Refresh Token을 생성해 주겠다.
-        // Access Token 수명이 만료되었을 경우 Refresh token을 확인해서 리프레시가 유효한 경우
+        // Access Token 수명이 만료되었을 경우 Refresh Token을 확인해서 리프레시가 유효한 경우
         // 로그인 없이 Access Token을 재발급 해주는 용도로 사용.
         String refreshToken
-                = jwtTokenProvider.createRefreshToken(user.getEmail(),
-                user.getRole().toString());
+                = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getRole().toString());
 
         // refreshToken을 DB에 저장하자. (redis)
 //        userService.saveRefreshToken(user.getEmail(), refreshToken);
@@ -148,10 +148,10 @@ public class UserController {
         String newAccessToken
                 = jwtTokenProvider.createToken(user.getEmail(), user.getRole().toString());
 
-        Map<String, Object> Info = new HashMap<>();
-        Info.put("token", newAccessToken);
+        Map<String, Object> info = new HashMap<>();
+        info.put("token", newAccessToken);
         CommonResDto resDto
-                = new CommonResDto(HttpStatus.OK, "새 토큰 발급됨", Info);
+                = new CommonResDto(HttpStatus.OK, "새 토큰 발급됨", info);
         return ResponseEntity.ok().body(resDto);
     }
 
@@ -159,10 +159,16 @@ public class UserController {
     // 그 이메일을 가지고 ordering-service가 원하는 회원 정보를 리턴하는 메서드.
     @GetMapping("/findByEmail")
     public ResponseEntity<?> getUserByEmail(@RequestParam String email) {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
         log.info("getUserByEmail: email: {}", email);
         UserResDto dto = userService.findByEmail(email);
         CommonResDto resDto
-                = new CommonResDto(HttpStatus.OK, "이메일로 회원 조회", dto);
+                = new CommonResDto(HttpStatus.OK, "이메일로 회원 조회 완료", dto);
         return ResponseEntity.ok().body(resDto);
     }
 
@@ -176,5 +182,6 @@ public class UserController {
 
         return msg;
     }
+
 
 }
