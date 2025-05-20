@@ -4,6 +4,7 @@ pipeline {
     agent any // 어느 젠킨스 서버에서나 실행이 가능
     environment {
         // 환경 변수 선언하는 곳.
+        SERVICE_DIRS = "config-service,discover-service,gateway-service,user-service,ordering-service,product-service"
     }
     stages {
         // 각 작업 단위를 스테이지로 나누어서 작성 가능.
@@ -15,9 +16,16 @@ pipeline {
         stage('Build Codes By Gradle') {
             steps {
                 script {
-                    sh """
-                    echo "Build Stage Start!"
-                    """
+                    def serviceDirs = env.SERVICE_DIRS.split(",")
+                    serviceDirs.each { service ->
+                        sh """
+                        echo "Building ${service}..."
+                        cd ${service}
+                        ./gradlew clean build -x test
+                        ls -al ./build/libs
+                        cd ..
+                        """
+                    }
                 }
             }
         }
